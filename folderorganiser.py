@@ -8,8 +8,8 @@ import shutil
 FOLDER_TO_EXTENSIONS = {
     'Applications': ['.app', '.dmg'],
     'Documents': ['.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx', '.pdf'],
-    'Images': ['.jpg', '.jpeg', '.png'],
-    'Media': ['.mp3', '.mp4', '.mov'],
+    'Images': ['.jpg', '.jpeg', '.png', '.heic'],
+    'Media': ['.mp3', '.mp4', '.mov', '.gif'],
     'Archives': ['.zip'],
     'TextFiles': ['.txt', '.html', '.htm', '.css', '.js'],
     'Configurations': ['.plist']
@@ -20,7 +20,7 @@ def main():
     directory = get_valid_directory()
     display_files(directory)
     files = get_files(directory)
-    sort_files(files)
+    sort_files(files, directory)
     print("Command executed")
 
 
@@ -62,31 +62,32 @@ def create_folder(folder_name):
         print(f"Folder '{folder_name}' already exists.")
 
 
-def sort_files(files):
+def sort_files(files, directory):
     """Sort files by allocation to folder."""
     # Create folders
-    for folder, extensions in FOLDER_TO_EXTENSIONS.items():
-        create_folder(folder)
+    for folder in FOLDER_TO_EXTENSIONS.keys():
+        create_folder(os.path.join(directory, folder))
 
     for file in files:
-        name, extension = os.path.splitext(file)
+        #  '_' throwaway variable for prefix
+        _, extension = os.path.splitext(file)
         extension = extension.lower()
 
         # Check if the extension is in any of the specified folders
         is_moved = False
         for folder, extensions in FOLDER_TO_EXTENSIONS.items():
             if extension in extensions:
-                folder_path = os.path.join(folder, file)
+                folder_path = os.path.join(directory, folder, file)
                 # Check if the file already exists in the target folder
                 if not os.path.exists(folder_path):
-                    shutil.move(file, folder_path)
+                    shutil.move(os.path.join(directory, file), folder_path)
                     is_moved = True
 
-        # If the file doesn't match any specified extensions, move it to the 'other' folder
+        # If the file doesn't match any specified extensions, move it to the 'Other' folder
         if not is_moved:
-            create_folder('Other')
-            folder_path = os.path.join('Other', file)
-            shutil.move(file, folder_path)
+            create_folder(os.path.join(directory, 'Other'))
+            folder_path = os.path.join(directory, 'Other', file)
+            shutil.move(os.path.join(directory, file), folder_path)
 
 
 main()
